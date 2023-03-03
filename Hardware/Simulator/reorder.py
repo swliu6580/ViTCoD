@@ -5,6 +5,8 @@ import torch
 from dgl.distributed import partition_graph
 import os  
 
+root = os.path.dirname(os.path.realpath(__file__)) + '/masks/deit_tiny_lowrank'
+
 def calc(graph, ax, threshold=90):
 #     print('start new')
     a0 = graph
@@ -15,8 +17,8 @@ def calc(graph, ax, threshold=90):
     for i in range(n):
         for j in range(n):
             if not a0[i][j]:
-                u_list.append(j)
-                v_list.append(i)
+                u_list.append(j)  ## 存放非零节点的列号
+                v_list.append(i)  ## 存放非零节点的行号
     g = dgl.graph((u_list, v_list))
     g.ndata['in_deg'] = g.in_degrees()
 
@@ -66,7 +68,9 @@ def calc(graph, ax, threshold=90):
 #         print(files) #当前路径下所有非目录子文件  
 
 # getfile_name('masks')
-for root, dirs, files in os.walk('/home/sheminghao/ViTCoD/Hardware/Simulator/masks/deit_tiny_lowrank'):
+for root, dirs, files in os.walk( root ):
+    print(root)
+    print(dirs)
     print('files', files)
     files = ['info_0.95.npy']
     for file in files: 
@@ -74,20 +78,22 @@ for root, dirs, files in os.walk('/home/sheminghao/ViTCoD/Hardware/Simulator/mas
         print(mask.shape)
 
         # before reorder
-        # fig, ax = plt.subplots(12,12, figsize=[20,20])
-        # for i in range(12):
-        #     for j in range(12):
-        #         ax[i, j].imshow(mask[i, j], cmap='viridis')
-        #         ax[i, j].axis('off')
-        # plt.savefig('data/attn.png', bbox_inches='tight')
-        # plt.close()
+        fig, ax = plt.subplots(mask.shape[0],mask.shape[1], figsize=[5,20])
+        for i in range(mask.shape[0]):
+            for j in range(mask.shape[1]):
+                ax[i, j].imshow(mask[i, j], cmap='viridis')
+                ax[i, j].axis('off')
+        plt.savefig(root + '/../data/attn.png', bbox_inches='tight')
+        plt.close()
 
         # after reorder
-        fig, ax = plt.subplots(mask.shape[0]+1,mask.shape[1], figsize=[20,20])
-        D = 0
-        E = 0
+        fig, ax = plt.subplots(mask.shape[0],mask.shape[1], figsize=[5,20])
+        D = 0 ## dense attention?
+        E = 0 ## total attention?
         new_mask = np.zeros(mask.shape)
+        print(tuple(['new_mask shape:']) + new_mask.shape)
         num_global_tokens = np.zeros((mask.shape[0], mask.shape[1]))
+        print(tuple(['num_global_tokens:']) + num_global_tokens.shape)
         for i in range(mask.shape[0]):
             for j in range(mask.shape[1]):
                 cnt_d, cnt_e, _new_mask, _num_global_tokens = calc(mask[i,j], ax[i,j], threshold=50)
@@ -95,11 +101,13 @@ for root, dirs, files in os.walk('/home/sheminghao/ViTCoD/Hardware/Simulator/mas
                 num_global_tokens[i, j] = _num_global_tokens
                 D += cnt_d
                 E += cnt_e
+                ax[i, j].imshow(new_mask[i, j], cmap='viridis')
+                ax[i, j].axis('off')
         print('Dense: {} ({:.2f}%), Sparse: {} ({:.2f}%), Total: {}'.format(\
             D, D/E*100, E-D, (E-D)/E*100, E))
         print('Overall Sparisty: {:.2f}%'.format(100 - E/12/12/197/197*100))
 
-        np.save(root+'/reodered_'+file, new_mask)
-        np.save(root+'/global_token_'+file, num_global_tokens)
+        np.save(root+'/test_reodered_'+file, new_mask)
+        np.save(root+'/test_global_token_'+file, num_global_tokens)
 
-    # plt.savefig('data/attn_reorder_50.png', bbox_inches='tight')
+        plt.savefig(root + '/../data/attn_reorder_50.png', bbox_inches='tight')

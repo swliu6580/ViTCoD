@@ -14,7 +14,7 @@ import math
 # embedding = 192
 # root = 'masks/levit/LeViT_192_lowrank/0.5'
 # root = '/home/sheminghao/shh/ViTCoD/attention_mask'
-root = 'masks/deit_tiny_lowrank'
+root = os.path.dirname(os.path.realpath(__file__)) + '/masks/deit_tiny_lowrank/'
 sparse = [0.95]
 total_preload_linear_cycles = 0
 total_preload_ffn_cycles = 0
@@ -24,7 +24,7 @@ total_PRE_cycles = 0
 
 log = logging.getLogger()
 # TODO:
-log_path = os.path.join(root, 'vitcod_atten_ffn.txt')
+log_path = root + 'test_vitcod_atten_ffn.txt'
 handlers = [logging.FileHandler(log_path, mode='a+'),
             logging.StreamHandler()]
 logging.basicConfig(
@@ -40,8 +40,8 @@ for p in sparse:
     # TODO: load the masks of attention and global tokens
     # attn_map_mask = np.load(root+'/reodered_info_'+str(p)+'.npy')
     # num_global_tokens = np.load(root+'/global_token_info_'+str(p)+'.npy')
-    attn_map_mask = np.load(root+'/reodered_info_'+str(p)+'.npy')
-    num_global_tokens = np.load(root+'/global_token_info_'+str(p)+'.npy')
+    attn_map_mask = np.load(root+'/test_reodered_info_'+str(p)+'.npy')
+    num_global_tokens = np.load(root+'/test_global_token_info_'+str(p)+'.npy')
     # attn_map_mask = np.load(root+'/reodered_mask_'+str(p)+'.npy')
     # num_global_tokens = np.load(root+'/global_token_mask_'+str(p)+'.npy')
     all_Q = np.random.random((attn_map_mask.shape[0], attn_map_mask.shape[1], attn_map_mask.shape[2], 64))

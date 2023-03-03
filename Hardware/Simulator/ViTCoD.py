@@ -8,14 +8,14 @@ import logging
 import os
 import math
 
-root = 'masks/deit_tiny_lowrank'
+root = os.path.dirname(os.path.realpath(__file__)) + '/masks/deit_tiny_lowrank/'
 # root = 'masks/reorder/deit/reorder_att/deit_base'
 sparse = [0.95]
 
 for p in sparse:
     # Logging
     log = logging.getLogger()
-    log_path = os.path.join(root, 'vitcod_atten_'+str(p)+'_wo.txt')
+    log_path = root + 'test_vitcod_atten_'+str(p)+'_wo.txt'
     handlers = [logging.FileHandler(log_path, mode='a+'),
                 logging.StreamHandler()]
     logging.basicConfig(
@@ -24,8 +24,8 @@ for p in sparse:
         level=logging.INFO,
         handlers=handlers)
     # Initialize Q, K, V and attn maps
-    attn_map_mask = np.load(root+'/reodered_info_'+str(p)+'.npy')
-    num_global_tokens = np.load(root+'/global_token_info_'+str(p)+'.npy')
+    attn_map_mask = np.load(root+'/test_reodered_info_'+str(p)+'.npy')
+    num_global_tokens = np.load(root+'/test_global_token_info_'+str(p)+'.npy')
     
     # dim of (layer, head, token, features)
     all_Q = np.random.random((attn_map_mask.shape[0], attn_map_mask.shape[1], attn_map_mask.shape[2], 64))
@@ -41,9 +41,9 @@ for p in sparse:
     total_linear_PE_cycles = 0
     total_PRE_cycles = 0
 
-    head = all_Q.shape[1]
+    head = all_Q.shape[1]  ## 注意力头
     # the compression ratio of head via the encoder
-    ratio = 2/3
+    ratio = 2/3  ## 压缩率
     PE_width = 64
     PE_height = 8
 
